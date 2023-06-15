@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
-use App\Models\Product;
 use App\Models\Order;
 
 use Illuminate\Support\Facades\Validator;
@@ -16,28 +14,57 @@ class OrderController extends Controller
 
         $orders = Order::all();
         
-        return response()->json($orders);
+        $show_all = false;
+        $show_one = false;
+
+        return view('orders.viewer', compact('show_all','show_one','orders'));
     }
 
-    public function show($order_id){
-        $order = Order::find($order_id);
+    public function showAll(Request $request) {
+        $id_client = $request->id_client;
+        $id_product = $request->id_product;
+        $status = $request->status;
 
-        if ($order) {
-            return response()->json($order);
-        } else {
-            return response()->json(['message'=>"pedido não encontrado"], 404);
+        $orders = OrderController::return_filtragem($id_client, $id_product, $status);
+
+        $show_all = true;
+        $show_one = false;
+
+        return view('orders.viewer', compact('show_all','show_one','orders'));
+        
+    }
+
+    public function show(Request $request){
+        $id_order = $request->input('id_order');
+        $orders = Order::find($id_order);
+
+        if (!$orders) {
+            $messages = "Error! Não foi encontrado pedido com esse ID.";
+            return view('layouts.error', compact('messages'));
         }
 
+        $show_all = false;
+        $show_one = true;
+
+        return view('orders.viewer', compact('show_all', 'show_one', 'orders'));
+        
+
     }
 
-    public function register(){
+    public function form_post() {
+
         return view('orders.register');
+        
     }
 
     public function store(Request $request){
         
+        $request->merge([
+            'dt_order' => str_replace('T', ' ', $request->input('dt_order')),
+        ]);
+
         $validator = Validator::make($request->all(),[
-            'dt_order' => 'required|date_format:Y-m-d H:i:s|before:'.now(),
+            'dt_order' => 'required|date_format:Y-m-d H:i|before:'.now(),
             'amount' => 'required|integer|gt:0',
             'status' => 'required|in:Cancelled,Pending,Completed',
             'id_product' => 'required|exists:products,id_product',
@@ -45,7 +72,7 @@ class OrderController extends Controller
         ], OrderController::messages());
         
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return OrderController::return_erro($validator->errors());
         }
 
         $order = new Order();
@@ -57,18 +84,42 @@ class OrderController extends Controller
 
         $order->save();
 
-        return response()->json($order, 201);
+        $title = "Sucesso!";
+        $messages = "Pedido adicionado com sucesso!";
+        return view('layouts.message', compact('title','messages'));
+    }
+
+    public function selec_put() {
+
+        return view('orders.seletor');
+        
+    }   
+
+    public function form_put(Request $request) {
+        $order = Order::find($request->input('id_order'));
+
+        if (!$order) {
+            return OrderController::return_erro("Cliente não encontrado com o ID informado");
+        }
+
+        return view('orders.updater',compact('order'));
     }
 
     public function update(Request $request, $order_id){
         $order = Order::find($order_id);
 
         if (!$order) {
-            return response()->json(['message'=>"pedido não encontrado"], 404);
+            return OrderController::return_erro("Pedido não encontrado com o ID informado");
         } 
 
+        if ($request -> dt_order) {
+            $request->merge([
+                'dt_order' => str_replace('T', ' ', $request->input('dt_order')),
+            ]);
+        }
+
         $validator = Validator::make($request->all(),[
-            'dt_order' => 'date_format:Y-m-d H:i:s|before:'.now(),
+            'dt_order' => 'date_format:Y-m-d H:i|before:'.now(),
             'amount' => 'integer|gt:0',
             'status' => 'in:Cancelled,Pending,Completed',
             'id_product' => 'exists:products,id_product',
@@ -76,26 +127,116 @@ class OrderController extends Controller
         ], OrderController::messages());
         
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
+            return OrderController::return_erro($validator->errors());
         }
 
         $order->update($request->all());
 
-        return response()->json($order,201);
+        $title = "Sucesso";
+        $messages = "Pedido alterado com sucesso!";
+        return view('layouts.message', compact('title','messages'));
 
+    }
+
+    public function selec_del() {
+
+        return view('orders.selecDelete');
+        
+    }
+
+    public function selec_massdel() {
+
+        $orders = Order::all();
+
+        return view('orders.massDeleter', compact('orders'));
+        
+    }
+
+    public function massdel(Request $request) {
+        foreach ($request->all() as $key => $value) {
+
+            if ($key == '_token' ||$key == '_method'  ) {
+                continue;
+                
+            } else {
+
+                try {
+                    Order::destroy($value);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    return OrderController::return_erro("Ocorreu um erro ao excluir o pedido.");
+                }
+
+            }
+        }
+        
+        $title = "Sucesso!";
+        $messages = "Todos pedidos foram deletados com sucesso!";
+        return view('layouts.message', compact('title','messages'));
+        
+    }
+
+
+    public function confirm_destroy(Request $request) {
+        $order = Order::find($request->input('id_order'));
+
+        if (!$order) {
+            return OrderController::return_erro("Pedido não encontrado com o ID informado");
+        }
+
+        return view('orders.confirmDelete',compact('order'));
     }
 
     public function destroy($order_id){
         $order = Order::find($order_id);
 
         if (!$order) {
-            return response()->json(['message'=>"pedido não encontrado"], 404);
+            return OrderController::return_erro("Pedido não encontrado com o ID informado");
         } 
 
-        $order->delete();
+        try {
+            $order->delete();
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return OrderController::return_erro("Não é possível excluir o pedido devido a registros dependentes em outras tabelas.");
+            } else {
+                return OrderController::return_erro("Ocorreu um erro ao excluir o pedido.");
+            }
+        }
+        
+        $title = "Sucesso!";
+        $messages = "Pedido deletado com sucesso!";
+        return view('layouts.message', compact('title','messages'));
 
-        return response()->json(['message'=>"pedido deletado com sucesso"],201);
+    }
 
+    public function return_filtragem($id_client, $id_product, $status){
+        
+        $query = Order::query();
+        
+        if (!$id_client && !$id_product && !$status) {
+            $orders = Order::all();
+            return $orders;
+        }
+
+        if ($id_client) {
+            $query->where('id_client', $id_client);
+        }
+        if ($id_product) {
+            $query->where('id_product', $id_product);
+        }
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $orders = $query->get();
+
+        return $orders;
+    }
+
+
+    public function return_erro($messages){
+        return view('layouts.error', compact('messages'));
     }
 
     public function messages()
