@@ -85,7 +85,7 @@
 /* VIEWER */
 
 .viewer {
-    padding: 2%;
+    padding: 5%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -114,6 +114,18 @@ h1 {
     font-weight: bold;
 }
 
+/* confirmDelete */
 
+.btn-delete {
+    background-color: red;
+    color: white;
+    /* Outros estilos opcionais */
+  }
 
+/* confirmPromo */
 
+.btn-ok {
+    background-color: green;
+    color: white;
+    /* Outros estilos opcionais */
+  }
