@@ -18,27 +18,29 @@
                 <button class="header-button">Clientes</button>
                 <div class="dropdown-content">
                     <a class="ancora" href="/clients/">Ler</a>
-                    <a class="ancora" href="#">Inserir</a>
-                    <a class="ancora" href="#">Modificar</a>
-                    <a class="ancora" href="#">Deletar</a>
+                    <a class="ancora" href="/clients/cadastrar/">Inserir</a>
+                    <a class="ancora" href="/clients/atualizar/">Modificar</a>
+                    <a class="ancora" href="/clients/deletar/">Deletar</a>
                 </div>
             </div>
             <div class="dropdown">
                 <button class="header-button">Produtos</button>
                 <div class="dropdown-content">
-                    <a class="ancora" href="#">Ler</a>
-                    <a class="ancora" href="#">Inserir</a>
-                    <a class="ancora" href="#">Modificar</a>
-                    <a class="ancora" href="#">Deletar</a>
+                    <a class="ancora" href="/products/">Ler</a>
+                    <a class="ancora" href="/products/cadastrar/">Inserir</a>
+                    <a class="ancora" href="/products/atualizar/">Modificar</a>
+                    <a class="ancora" href="/products/deletar/">Deletar</a>
+                    <a class="ancora" href="/products/promo/">Aplicar descontos</a>
+
                 </div>
             </div>
             <div class="dropdown">
                 <button class="header-button">Pedidos</button>
                 <div class="dropdown-content">
-                    <a class="ancora" href="#">Ler</a>
-                    <a class="ancora" href="#">Inserir</a>
-                    <a class="ancora" href="#">Modificar</a>
-                    <a class="ancora" href="#">Deletar</a>
+                    <a class="ancora" href="/orders/">Ler</a>
+                    <a class="ancora" href="/orders/cadastrar/">Inserir</a>
+                    <a class="ancora" href="/orders/atualizar/">Modificar</a>
+                    <a class="ancora" href="/orders/deletar/">Deletar</a>
                 </div>
             </div>
             
