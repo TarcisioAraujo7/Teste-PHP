@@ -11,60 +11,55 @@ use Illuminate\Http\Request;
 class ClientController extends Controller
 {
 
-    public function viewer() {
-        return view("clients.viewer");
-    }
 
     public function index() {
 
+        $clientes = Client::all(); 
 
-        $clientes = Client::all(); // Busca todos os clientes do banco de dados
+        $show_all = false;
+        $show_one = false;
 
-        if (request()->wantsJson()) {
-            return response()->json($clientes);
-        } else {
-            $show_all = false;
-            return view('clients.viewer', compact('show_all','clientes'));
-        }
+        return view('clients.viewer', compact('show_all','show_one','clientes'));
         
     }
 
-    public function show($client_id){
-        $client = Client::find($client_id);
+    public function show_all(Request $request) {
 
-        if ($client) {
-            return response()->json($client);
-        } else {
-            return response()->json(['message'=>"cliente não encontrado"], 404);
-        }
+        $like_name = $request->like_name;
+        $like_surname = $request->like_surname;
+        $like_email = $request->like_email;
 
+        $clientes = ClientController::return_filtragem($like_name, $like_surname, $like_email);
+
+        $show_all = true;
+        $show_one = false;
+
+        return view('clients.viewer', compact('show_all','show_one','clientes'));
+        
     }
 
-    public function consult(Request $request)
+
+    public function show(Request $request)
     {
         $id_client = $request->input('id_client');
-        $clientes = [];
+        $clientes = Client::find($id_client);
 
-        if ($id_client) {
-            $client = Client::find($id_client);
-
-            if ($client) {
-                $clientes[] = $client;
-            }
+        if (!$clientes) {
+            $messages = "Error! Não foi encontrado cliente com esse ID.";
+            return view('layouts.error', compact('messages'));
         }
 
         $show_all = false;
+        $show_one = true;
 
-        return view('clients.viewer', compact('show_all', 'clientes'));
+        return view('clients.viewer', compact('show_all', 'show_one', 'clientes'));
 
     }
 
-    public function show_all()
-    {
-        $show_all = true;
-        $clientes = Client::all();
+    public function form_post() {
 
-        return view('clients.viewer', compact('show_all', 'clientes'));
+        return view('clients.register');
+        
     }
 
     public function store(Request $request){
@@ -73,11 +68,11 @@ class ClientController extends Controller
             'name' => 'required|max:20|regex:/^[^0-9]+$/|alpha_dash',
             'surname' => 'required|max:20|regex:/^[^0-9]+$/|alpha_dash',
             'cpf' => 'required|regex:/^[0-9]+$/|size:11|unique:clients',
-            'email' => 'email|unique:clients',
+            'email' => 'nullable|email|unique:clients',
         ], ClientController::messages());
         
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return ClientController::return_erro($validator->errors());
         }
 
         $client = new Client();
@@ -88,44 +83,188 @@ class ClientController extends Controller
 
         $client->save();
 
-        return response()->json($client, 201);
+        $title = "Sucesso!";
+        $messages = "Cliente adicionado com sucesso!";
+        return view('layouts.message', compact('title','messages'));
     }
 
-    public function update(Request $request, $client_id){
-        $client = Client::find($client_id);
+    public function selec_put() {
+
+        return view('clients.seletor');
+        
+    }
+
+    public function form_put(Request $request) {
+        $client = Client::find($request->input('id_client'));
 
         if (!$client) {
-            return response()->json(['message'=>"cliente não encontrado"], 404);
+            return ClientController::return_erro("Cliente não encontrado com o ID informado");
+        }
+
+        return view('clients.updater',compact('client'));
+    }
+
+    public function update(Request $request, $id_client){
+
+        $client = Client::find($id_client);
+
+        if (!$client) {
+            return ClientController::return_erro("Cliente não encontrado com o ID informado");
         } 
+
 
         $validator = Validator::make($request->all(),[
             'name' => 'max:20|regex:/^[^0-9]+$/|alpha_dash',
             'surname' => 'max:20|regex:/^[^0-9]+$/|alpha_dash',
-            'cpf' => 'regex:/^[0-9]+$/|size:11|unique:clients',
-            'email' => 'email|unique:clients',
+            'cpf' => 'regex:/^[0-9]+$/|size:11',
+            'email' => 'nullable',
         ], ClientController::messages());
         
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        $validator->sometimes('cpf', 'unique:clients', function ($input) use ($client) {
+            return $input->cpf != $client->cpf;
+        });
         
+        $validator->sometimes('email', 'unique:clients', function ($input) use ($client) {
+            return $input->email != $client->email;
+        });
+        
+
+        if ($validator->fails()) {
+            return ClientController::return_erro($validator->errors());
+        }
+
         $client->update($request->all());
 
-        return response()->json($client,201);
+        $title = "Sucesso";
+        $messages = "Cliente alterado com sucesso!";
+        return view('layouts.message', compact('title','messages'));
 
+    }
+
+    public function selec_del() {
+
+        return view('clients.selecDelete');
+        
+    }
+
+    public function selec_massdel() {
+
+        $clientes = Client::all();
+
+        return view('clients.massDeleter', compact('clientes'));
+        
+    }
+
+    public function massdel(Request $request) {
+        
+        foreach ($request->all() as $key => $value) {
+
+            if ($key == '_token' ||$key == '_method'  ) {
+                continue;
+                
+            } else {
+
+                try {
+                    Client::destroy($value);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    $errorCode = $e->errorInfo[1];
+                    if ($errorCode == 1451) {
+                        return ClientController::return_erro("Não é possível excluir o cliente de id {$value} devido a registros dependentes em outras tabelas.");
+                    } else {
+                        return ClientController::return_erro("Ocorreu um erro ao excluir o cliente.");
+                    }
+                }
+
+            }
+        }
+        
+        $title = "Sucesso!";
+        $messages = "Todos clientes foram deletados com sucesso!";
+        return view('layouts.message', compact('title','messages'));
+        
+    }
+
+
+    public function confirm_destroy(Request $request) {
+        $client = Client::find($request->input('id_client'));
+
+        if (!$client) {
+            return ClientController::return_erro("Cliente não encontrado com o ID informado");
+        }
+
+        return view('clients.confirmDelete',compact('client'));
     }
 
     public function destroy($client_id){
         $client = Client::find($client_id);
 
         if (!$client) {
-            return response()->json(['message'=>"cliente não encontrado"], 404);
+            return ClientController::return_erro("Cliente não encontrado com o ID informado");
         } 
 
-        $client->delete();
+        try {
+            $client->delete();
+        } catch (\Illuminate\Database\QueryException $e) {
+            $errorCode = $e->errorInfo[1];
+            if ($errorCode == 1451) {
+                return ClientController::return_erro("Não é possível excluir o cliente devido a registros dependentes em outras tabelas.");
+            } else {
+                return ClientController::return_erro("Ocorreu um erro ao excluir o cliente.");
+            }
+        }
+        
 
-        return response()->json(['message'=>"cliente deletado com sucesso"],201);
+        $title = "Sucesso!";
+        $messages = "Cliente deletado com sucesso!";
+        return view('layouts.message', compact('title','messages'));
 
+    }
+
+    public function return_filtragem($like_name, $like_surname, $like_email){
+        $query = Client::query();
+        
+        if (!$like_name && !$like_surname && !$like_email) {
+            $clientes = Client::all();
+
+            return $clientes;
+        }
+
+        if ($like_name && $like_surname && $like_email) {
+            $query->where('name', 'LIKE', '%' . $like_name . '%')->
+                    where('surname', 'LIKE', '%' . $like_surname . '%')->
+                    where('email', 'LIKE', '%' . $like_email . '%');
+
+        } elseif ($like_name && $like_surname  ) {
+            $query->where('name', 'LIKE', '%' . $like_name . '%')->
+                    where('surname', 'LIKE', '%' . $like_surname . '%');
+
+        } elseif ($like_name && $like_email) {
+            $query->where('name', 'LIKE', '%' . $like_name . '%')->
+                    where('email', 'LIKE', '%' . $like_email . '%');
+
+        } elseif ($like_surname && $like_email) {
+            $query->where('surname', 'LIKE', '%' . $like_surname . '%')->
+            where('email', 'LIKE', '%' . $like_email . '%');
+
+        } elseif ($like_name) {
+            
+            $query->where('name', 'LIKE', '%' . $like_name . '%');
+
+        } elseif ($like_surname) {
+            $query->where('surname', 'LIKE', '%' . $like_surname . '%');
+
+        } elseif ($like_email) {
+            $query->where('email', 'LIKE', '%' . $like_email . '%');
+            
+        }
+        
+        $clientes = $query->get();
+
+        return $clientes;
+    }
+
+    public function return_erro($messages){
+        return view('layouts.error', compact('messages'));
     }
 
     public function messages()
