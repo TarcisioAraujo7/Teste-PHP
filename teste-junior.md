@@ -2,7 +2,7 @@
 
 ## ❕ Informações iniciais.
 
-- A aplicação realiza o CRUD (controll, read, update, delete) de três modelos, sendo eles Clients, Products e Orders.
+- A aplicação realiza o CRUD (create, read, update, delete) de três modelos, sendo eles Clients, Products e Orders.
 
 - É possivel combinar filtros de buscas como faixas de preços, nomes e status de pedidos para obter buscas mais precisas.
 
