@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 class OrderAPIController extends Controller
 {
     public function index() {
-
         $orders = Order::all();
         
         return response()->json($orders);

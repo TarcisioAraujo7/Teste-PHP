@@ -12,8 +12,7 @@ class ClientAPIController extends Controller
 {
     public function index() {
 
-
-        $clientes = Client::all(); // Busca todos os clientes do banco de dados
+        $clientes = Client::all(); 
 
         return response()->json($clientes);
         
