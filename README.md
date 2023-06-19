@@ -6,7 +6,7 @@
 
 - É possivel combinar filtros de buscas como faixas de preços, nomes e status de pedidos para obter buscas mais precisas.
 
-![Tela de filtragem de produtos](public\images\exemplo_filtragem.png)
+![Tela de filtragem de produtos](public/images/exemplo_filtragem.png)
 
 - É possivel deletar e alterar qualquer item.
 
