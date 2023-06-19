@@ -12,7 +12,7 @@
             
         <div class=form_view>
 
-            <form method="POST" action="/products/exibir_product">
+            <form method="GET" action="/products/exibir_product">
                 @csrf
                 <div>
                     <label for="id_product">ID do Produto:</label>
@@ -22,7 +22,7 @@
                 </div>
             </form>
         
-            <form method="POST" action="{{ route('products.show_all') }}">
+            <form method="GET" action="{{ route('products.show_all') }}">
                 @csrf
                 <h3> Filtre por: </h3><br>
                 

@@ -11,7 +11,7 @@
         <h1>Consulta de Clientes</h1><br>
             
         <div class=form_view>
-            <form method="POST" action="/clients/exibir_client">
+            <form method="GET" action="/clients/exibir_client">
                 @csrf
 
                 <div>
@@ -25,7 +25,7 @@
 
             </form>
         
-            <form method="POST" action="{{ route('clients.show_all') }}">
+            <form method="GET" action="{{ route('clients.show_all') }}">
                 @csrf
                 <h3> Filtre por: </h3><br>
                 

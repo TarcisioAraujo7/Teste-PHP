@@ -24,8 +24,8 @@ Route::get('/', function () {
 Route::prefix('clients')->group(function () {
 
     Route::get('/', [ClientController::class, 'index']);
-    Route::post('/exibir-todos', [ClientController::class, 'show_all'])->name('clients.show_all');
-    Route::post('/exibir_client', [ClientController::class, 'show']);
+    Route::get('/exibir-todos', [ClientController::class, 'show_all'])->name('clients.show_all');
+    Route::get('/exibir_client', [ClientController::class, 'show']);
 
     Route::get('/cadastrar', [ClientController::class, 'form_post']);
     Route::post('/', [ClientController::class, 'store'])->name('clients.add');
@@ -45,8 +45,8 @@ Route::prefix('clients')->group(function () {
 Route::prefix('products')->group(function () {
 
     Route::get('/', [ProductController::class, 'index']);
-    Route::post('/exibir-todos', [ProductController::class, 'show_all'])->name('products.show_all');
-    Route::post('/exibir_product', [ProductController::class, 'show'])->name('product.show');
+    Route::get('/exibir-todos', [ProductController::class, 'show_all'])->name('products.show_all');
+    Route::get('/exibir_product', [ProductController::class, 'show'])->name('product.show');
 
     Route::get('/cadastrar', [ProductController::class, 'form_post']);
     Route::post('/', [ProductController::class, 'store'])->name('products.add');
@@ -70,8 +70,8 @@ Route::prefix('products')->group(function () {
 Route::prefix('orders')->group(function () {
 
     Route::get('/', [OrderController::class, 'index']);
-    Route::post('/exibir-todos', [OrderController::class, 'showAll'])->name('products.showAll');
-    Route::post('/exibir_order', [OrderController::class, 'show'])->name('product.show');
+    Route::get('/exibir-todos', [OrderController::class, 'showAll'])->name('products.showAll');
+    Route::get('/exibir_order', [OrderController::class, 'show'])->name('product.show');
 
     Route::get('/cadastrar', [OrderController::class, 'form_post']);
     Route::post('/', [OrderController::class, 'store'])->name('products.add');

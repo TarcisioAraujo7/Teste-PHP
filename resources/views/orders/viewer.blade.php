@@ -11,7 +11,7 @@
         <h1>Consulta de Pedidos</h1><br>
             
         <div class=form_view>
-            <form method="POST" action="/orders/exibir_order">
+            <form method="GET" action="/orders/exibir_order">
                 @csrf
 
                 <div>
@@ -23,7 +23,7 @@
 
             </form>
 
-            <form method="POST" action="/orders/exibir-todos">
+            <form method="GET" action="/orders/exibir-todos">
                 @csrf
                 <h3> Filtre por: </h3><br>
                 
