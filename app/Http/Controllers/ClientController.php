@@ -6,25 +6,24 @@ use App\Models\Client;
 
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
 
-
-    public function index() {
-
+    public function index()
+    {
         $clientes = Client::all(); 
 
         $show_all = false;
         $show_one = false;
 
         return view('clients.viewer', compact('show_all','show_one','clientes'));
-        
     }
 
-    public function show_all(Request $request) {
-
+    public function show_all(Request $request): View 
+    {
         $like_name = $request->like_name;
         $like_surname = $request->like_surname;
         $like_email = $request->like_email;
@@ -35,9 +34,7 @@ class ClientController extends Controller
         $show_one = false;
 
         return view('clients.viewer', compact('show_all','show_one','clientes'));
-        
     }
-
 
     public function show(Request $request)
     {
@@ -53,17 +50,15 @@ class ClientController extends Controller
         $show_one = true;
 
         return view('clients.viewer', compact('show_all', 'show_one', 'clientes'));
-
     }
 
-    public function form_post() {
-
+    public function form_post() 
+    {
         return view('clients.register');
-        
     }
 
-    public function store(Request $request){
-
+    public function store(Request $request)
+    {
         $validator = Validator::make($request->all(),[
             'name' => 'required|max:20|regex:/^[^0-9]+$/|alpha_dash',
             'surname' => 'required|max:20|regex:/^[^0-9]+$/|alpha_dash',
@@ -88,13 +83,13 @@ class ClientController extends Controller
         return view('layouts.message', compact('title','messages'));
     }
 
-    public function selec_put() {
-
+    public function selec_put()
+    {
         return view('clients.seletor');
-        
     }
 
-    public function form_put(Request $request) {
+    public function form_put(Request $request)
+    {
         $client = Client::find($request->input('id_client'));
 
         if (!$client) {
@@ -104,8 +99,8 @@ class ClientController extends Controller
         return view('clients.updater',compact('client'));
     }
 
-    public function update(Request $request, $id_client){
-
+    public function update(Request $request, $id_client)
+    {
         $client = Client::find($id_client);
 
         if (!$client) {
@@ -128,7 +123,6 @@ class ClientController extends Controller
             return $input->email != $client->email;
         });
         
-
         if ($validator->fails()) {
             return ClientController::return_erro($validator->errors());
         }
@@ -138,25 +132,22 @@ class ClientController extends Controller
         $title = "Sucesso";
         $messages = "Cliente alterado com sucesso!";
         return view('layouts.message', compact('title','messages'));
-
     }
 
-    public function selec_del() {
-
+    public function selec_del()
+    {
         return view('clients.selecDelete');
-        
     }
 
-    public function selec_massdel() {
-
+    public function selec_massdel()
+    {
         $clientes = Client::all();
 
         return view('clients.massDeleter', compact('clientes'));
-        
     }
 
-    public function massdel(Request $request) {
-        
+    public function massdel(Request $request)
+    {
         foreach ($request->all() as $key => $value) {
 
             if ($key == '_token' ||$key == '_method'  ) {
@@ -180,12 +171,12 @@ class ClientController extends Controller
         
         $title = "Sucesso!";
         $messages = "Todos clientes foram deletados com sucesso!";
-        return view('layouts.message', compact('title','messages'));
-        
+        return view('layouts.message', compact('title','messages')); 
     }
 
 
-    public function confirm_destroy(Request $request) {
+    public function confirm_destroy(Request $request)
+    {
         $client = Client::find($request->input('id_client'));
 
         if (!$client) {
@@ -195,7 +186,8 @@ class ClientController extends Controller
         return view('clients.confirmDelete',compact('client'));
     }
 
-    public function destroy($client_id){
+    public function destroy($client_id)
+    {
         $client = Client::find($client_id);
 
         if (!$client) {
@@ -213,57 +205,47 @@ class ClientController extends Controller
             }
         }
         
-
         $title = "Sucesso!";
         $messages = "Cliente deletado com sucesso!";
         return view('layouts.message', compact('title','messages'));
-
     }
 
-    public function return_filtragem($like_name, $like_surname, $like_email){
+
+    /** 
+     * Função para filtragem, reduzindo os resultados das buscas de acordo com as entradas dadas.
+     * 
+     * @var string $like_name
+     * @var string $like_surname
+     * @var string $like_email
+       */
+    public function return_filtragem($like_name, $like_surname, $like_email)
+    {
         $query = Client::query();
-        
+
+        if ($like_name) {
+            $query->where('name', 'LIKE', '%' . $like_name . '%');
+        }
+
+        if ($like_surname) {
+            $query->where('surname', 'LIKE', '%' . $like_surname . '%');
+        }
+
+        if ($like_email) {
+            $query->where('email', 'LIKE', '%' . $like_email . '%');
+        }
+
+        // Verifica se nenhuma condição de filtragem foi especificada
         if (!$like_name && !$like_surname && !$like_email) {
             $clientes = Client::all();
-
-            return $clientes;
+        } else {
+            $clientes = $query->get();
         }
-
-        if ($like_name && $like_surname && $like_email) {
-            $query->where('name', 'LIKE', '%' . $like_name . '%')->
-                    where('surname', 'LIKE', '%' . $like_surname . '%')->
-                    where('email', 'LIKE', '%' . $like_email . '%');
-
-        } elseif ($like_name && $like_surname  ) {
-            $query->where('name', 'LIKE', '%' . $like_name . '%')->
-                    where('surname', 'LIKE', '%' . $like_surname . '%');
-
-        } elseif ($like_name && $like_email) {
-            $query->where('name', 'LIKE', '%' . $like_name . '%')->
-                    where('email', 'LIKE', '%' . $like_email . '%');
-
-        } elseif ($like_surname && $like_email) {
-            $query->where('surname', 'LIKE', '%' . $like_surname . '%')->
-            where('email', 'LIKE', '%' . $like_email . '%');
-
-        } elseif ($like_name) {
-            
-            $query->where('name', 'LIKE', '%' . $like_name . '%');
-
-        } elseif ($like_surname) {
-            $query->where('surname', 'LIKE', '%' . $like_surname . '%');
-
-        } elseif ($like_email) {
-            $query->where('email', 'LIKE', '%' . $like_email . '%');
-            
-        }
-        
-        $clientes = $query->get();
 
         return $clientes;
     }
 
-    public function return_erro($messages){
+    public function return_erro($messages)
+    {
         return view('layouts.error', compact('messages'));
     }
 
@@ -285,7 +267,6 @@ class ClientController extends Controller
             'email.email' => 'O campo email deve ser um endereço de e-mail válido.',
             'email.unique' => 'O email informado já está cadastrado.',
         ];
-
     }
 
 

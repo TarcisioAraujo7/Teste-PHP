@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function index() {
-
+    public function index()
+    {
         $orders = Order::all();
         
         $show_all = false;
@@ -20,11 +20,11 @@ class OrderController extends Controller
         return view('orders.viewer', compact('show_all','show_one','orders'));
     }
 
-    public function showAll(Request $request) {
+    public function showAll(Request $request)
+    {
         $id_client = $request->id_client;
         $id_product = $request->id_product;
         $status = $request->status;
-
         $orders = OrderController::return_filtragem($id_client, $id_product, $status);
 
         $show_all = true;
@@ -34,7 +34,8 @@ class OrderController extends Controller
         
     }
 
-    public function show(Request $request){
+    public function show(Request $request)
+    {
         $id_order = $request->input('id_order');
         $orders = Order::find($id_order);
 
@@ -47,18 +48,15 @@ class OrderController extends Controller
         $show_one = true;
 
         return view('orders.viewer', compact('show_all', 'show_one', 'orders'));
-        
-
     }
 
-    public function form_post() {
-
+    public function form_post()
+    {
         return view('orders.register');
-        
     }
 
-    public function store(Request $request){
-        
+    public function store(Request $request)
+    {
         $request->merge([
             'dt_order' => str_replace('T', ' ', $request->input('dt_order')),
         ]);
@@ -89,13 +87,13 @@ class OrderController extends Controller
         return view('layouts.message', compact('title','messages'));
     }
 
-    public function selec_put() {
-
+    public function selec_put()
+    {
         return view('orders.seletor');
-        
     }   
 
-    public function form_put(Request $request) {
+    public function form_put(Request $request)
+    {
         $order = Order::find($request->input('id_order'));
 
         if (!$order) {
@@ -105,7 +103,8 @@ class OrderController extends Controller
         return view('orders.updater',compact('order'));
     }
 
-    public function update(Request $request, $order_id){
+    public function update(Request $request, $order_id)
+    {
         $order = Order::find($order_id);
 
         if (!$order) {
@@ -135,24 +134,22 @@ class OrderController extends Controller
         $title = "Sucesso";
         $messages = "Pedido alterado com sucesso!";
         return view('layouts.message', compact('title','messages'));
-
     }
 
-    public function selec_del() {
-
+    public function selec_del()
+    {
         return view('orders.selecDelete');
-        
     }
 
-    public function selec_massdel() {
-
+    public function selec_massdel()
+    {
         $orders = Order::all();
 
         return view('orders.massDeleter', compact('orders'));
-        
     }
 
-    public function massdel(Request $request) {
+    public function massdel(Request $request)
+    {
         foreach ($request->all() as $key => $value) {
 
             if ($key == '_token' ||$key == '_method'  ) {
@@ -172,11 +169,11 @@ class OrderController extends Controller
         $title = "Sucesso!";
         $messages = "Todos pedidos foram deletados com sucesso!";
         return view('layouts.message', compact('title','messages'));
-        
     }
 
 
-    public function confirm_destroy(Request $request) {
+    public function confirm_destroy(Request $request)
+    {
         $order = Order::find($request->input('id_order'));
 
         if (!$order) {
@@ -186,7 +183,8 @@ class OrderController extends Controller
         return view('orders.confirmDelete',compact('order'));
     }
 
-    public function destroy($order_id){
+    public function destroy($order_id)
+    {
         $order = Order::find($order_id);
 
         if (!$order) {
@@ -207,11 +205,17 @@ class OrderController extends Controller
         $title = "Sucesso!";
         $messages = "Pedido deletado com sucesso!";
         return view('layouts.message', compact('title','messages'));
-
     }
 
-    public function return_filtragem($id_client, $id_product, $status){
-        
+    /** 
+     * Função para filtragem, reduzindo os resultados das buscas de acordo com as entradas dadas.
+     * 
+     * @var int $id_client
+     * @var int $id_product
+     * @var string $status
+       */
+    public function return_filtragem($id_client, $id_product, $status)
+    {
         $query = Order::query();
         
         if (!$id_client && !$id_product && !$status) {
@@ -235,7 +239,8 @@ class OrderController extends Controller
     }
 
 
-    public function return_erro($messages){
+    public function return_erro($messages)
+    {
         return view('layouts.error', compact('messages'));
     }
 
