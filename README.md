@@ -2,13 +2,15 @@
 
 ## ❕ Informações iniciais.
 
-- A aplicação realiza o CRUD (controll, read, update, delete) de três modelos, sendo eles Clients, Products e Orders.
+- A aplicação realiza o CRUD (create, read, update, delete) de três modelos, sendo eles Clients, Products e Orders.
 
 - É possivel combinar filtros de buscas como faixas de preços, nomes e status de pedidos para obter buscas mais precisas.
 
 ![Tela de filtragem de produtos](public/images/exemplo_filtragem.png)
 
 - É possivel deletar e alterar qualquer item.
+
+- Foram criadas telas de erro personalizadas!
 
 ## 📚 Pre-requisitos
 
@@ -97,7 +99,7 @@ http://127.0.0.1:8000/products/deletar
 http://127.0.0.1:8000/orders/deletar
 ```
 
--⚠ Todos endpoints podem ser conferidos na pasta /routes.
+-⚠ Todos endpoints podem ser conferidos na [pasta](routes).
 
 ## 🤩 Implementações adicionais:
 
@@ -146,11 +148,11 @@ http://127.0.0.1:8000/products/promo/
 ```
 GET
  
-http://127.0.0.1:8000/API/clients/
+http://127.0.0.1:8000/api/clients/
 
-http://127.0.0.1:8000/API/products/
+http://127.0.0.1:8000/api/products/
 
-http://127.0.0.1:8000/API/orders/
+http://127.0.0.1:8000/api/orders/
 ```
 
 - As demais rotas podem ser encontradas no [arquivo](routes/api.php)
